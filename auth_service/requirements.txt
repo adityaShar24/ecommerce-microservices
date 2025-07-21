@@ -4,3 +4,6 @@ sqlalchemy==2.0.41
 pydantic== 2.10.6
 alembic==1.14.1
 psycopg2-binary
+passlib
+pydantic[email]==2.10.6
+bcrypt
