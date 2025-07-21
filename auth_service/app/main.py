@@ -32,6 +32,20 @@ def register_user(user: schema.UserCreate , db: Session = Depends(get_db)):
     db.refresh(new_user)
     return new_user
 
+@app.post('/login', response_model=schema.Token)
+def login(user_cred: schema.UserLogin, db :  Session = Depends(get_db)):
+    user = db.query(model.User).filter(model.User.email == user_cred)
+
+    if not user:
+        raise HTTPException(status_code=400 , detail = "Invalid Credentials")
+    
+    if not auth.verify_password(user_cred.password, user.hashed_password):
+        raise HTTPException(status_code=400 , detail= 'Invalid Credentials')
+
+    access_token = auth.create_access_token(data={"user_id": user.id})
+
+    return {"access_token": access_token, "token_type": "bearer"}
+
 if __name__ =="__main__":
     import uvicorn
     uvicorn.run("app.main:app", host="0.0.0.0", port=8001, reload=True)
