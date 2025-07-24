@@ -34,7 +34,8 @@ def register_user(user: schema.UserCreate , db: Session = Depends(get_db)):
 
 @app.post('/login', response_model=schema.Token)
 def login(user_cred: schema.UserLogin, db :  Session = Depends(get_db)):
-    user = db.query(model.User).filter(model.User.email == user_cred)
+    user = db.query(model.User).filter(model.User.email == user_cred.email).first()
+
 
     if not user:
         raise HTTPException(status_code=400 , detail = "Invalid Credentials")
