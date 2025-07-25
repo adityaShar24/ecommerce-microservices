@@ -1,8 +1,9 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from . import database, model, schema, auth
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 
-
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 app = FastAPI()
 
@@ -18,6 +19,17 @@ def get_db():
 def read_root():
     return {"message":"auth service is running"}
 
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    user_id = auth.verify_access_token(token, credentials_exception)
+    user = db.query(model.User).filter(model.User.id == user_id).first()
+    if user is None:
+        raise credentials_exception
+    return user
 
 @app.post('/register', response_model=schema.UserOut)
 def register_user(user: schema.UserCreate , db: Session = Depends(get_db)):
@@ -46,6 +58,36 @@ def login(user_cred: schema.UserLogin, db :  Session = Depends(get_db)):
     access_token = auth.create_access_token(data={"user_id": user.id})
 
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@app.post('/refresh', response_model=schema.Token)
+def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
+    user_id = auth.verify_refresh_token(refresh_token)
+    access_token = auth.create_access_token(data={"user_id": user_id})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@app.post('/reset-password')
+def reset_password(token: str, new_password: str, db: Session = Depends(get_db)):
+    user_id = auth.verify_reset_token(token)
+    user = db.query(model.User).filter(model.User.id == user_id).first()
+    user.hashed_password = auth.hash_password(new_password)
+    db.commit()
+    return {"message": "Password reset successful"}
+
+
+@app.post('/change-password')
+def change_password(current_password: str, new_password: str, user: model.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not auth.verify_password(current_password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    user.hashed_password = auth.hash_password(new_password)
+    db.commit()
+    return {"message": "Password changed successfully"}
+
+
+@app.get('/profile', response_model=schema.UserOut)
+def get_profile(user: model.User = Depends(get_current_user)):
+    return user
 
 if __name__ =="__main__":
     import uvicorn
