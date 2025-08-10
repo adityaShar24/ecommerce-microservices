@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from . import database, model, schema, auth
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from publisher import publish_message
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
@@ -42,6 +43,14 @@ def register_user(user: schema.UserCreate , db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+    publish_message({
+        "action": "create_user",
+        "data": {
+            "user_id": new_user.id,
+            "email": new_user.email,
+            "full_name": new_user.full_name
+        }
+    })
     return new_user
 
 @app.post('/login', response_model=schema.Token)
