@@ -8,3 +8,4 @@ passlib
 pydantic[email]==2.10.6
 bcrypt
 python-jose
+pika

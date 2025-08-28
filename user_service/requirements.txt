@@ -7,3 +7,4 @@ requests
 pyjwt
 pika
 Flask-Migrate
+psycopg2
