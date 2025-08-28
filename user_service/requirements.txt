@@ -5,4 +5,5 @@ marshmallow-sqlalchemy
 flask-restful
 requests
 pyjwt
+pika
 Flask-Migrate

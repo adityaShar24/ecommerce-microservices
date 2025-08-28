@@ -8,6 +8,16 @@ services:
       - "5000:5000"
     volumes:
       - .:/app
+
+  queue:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    command: 'python app/consumer.py'
+    depends_on:
+      - db
+
+
     
   db:
     image: postgres:13
