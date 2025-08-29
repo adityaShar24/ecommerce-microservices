@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from .middleware import token_required
 from .models import db, User, Address, UserSchema, AddressSchema
 
 bp = Blueprint('routes', __name__)
@@ -7,6 +8,7 @@ address_schema = AddressSchema()
 addresses_schema = AddressSchema(many=True)
 
 @bp.route('/users/<int:user_id>', methods=['GET'])
+@token_required
 def get_user(user_id):
     user = User.query.get(user_id)
     if not user:
@@ -14,6 +16,7 @@ def get_user(user_id):
     return user_schema.jsonify(user)
 
 @bp.route('/users/<int:user_id>', methods=['PUT'])
+@token_required
 def update_user(user_id):
     data = request.json
     user = User.query.get(user_id)
@@ -25,6 +28,7 @@ def update_user(user_id):
     return user_schema.jsonify(user)
 
 @bp.route('/users/<int:user_id>/addresses', methods=['POST'])
+@token_required
 def add_address(user_id):
     data = request.json
     address = Address(
@@ -40,11 +44,13 @@ def add_address(user_id):
     return address_schema.jsonify(address), 201
 
 @bp.route('/users/<int:user_id>/addresses', methods=['GET'])
+@token_required
 def get_addresses(user_id):
     addresses = Address.query.filter_by(user_id=user_id).all()
     return addresses_schema.jsonify(addresses)
 
 @bp.route('/addresses/<int:address_id>', methods=['PUT'])
+@token_required
 def update_address(address_id):
     address = Address.query.get(address_id)
     if not address:
@@ -59,6 +65,7 @@ def update_address(address_id):
     return address_schema.jsonify(address)
 
 @bp.route('/addresses/<int:address_id>', methods=['DELETE'])
+@token_required
 def delete_address(address_id):
     address = Address.query.get(address_id)
     if not address:
