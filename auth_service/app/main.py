@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from . import database, model, schema, auth
@@ -66,6 +67,14 @@ def login(user_cred: schema.UserLogin, db :  Session = Depends(get_db)):
 
     access_token = auth.create_access_token(data={"user_id": user.id})
 
+    publish_message({
+        "action":"user_login",
+        "data":{
+            "user_id": user.id,
+            "email": user.email,
+            "timestamp": datetime.now().isoformat()
+        }
+    })
     return {"access_token": access_token, "token_type": "bearer"}
 
 
