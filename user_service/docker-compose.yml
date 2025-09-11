@@ -6,29 +6,32 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5000:5000"
-    volumes:
+    volumes: 
       - .:/app
+    environment:
+      - DATABASE_URL=postgresql://postgres:1234@db:5432/user_db
+    depends_on:
+      - db
 
   queue:
     build: 
       context: .
       dockerfile: Dockerfile
-    command: 'python app/consumer.py'
+    command: 'python -m app.consumer'
     depends_on:
       - db
+    environment:
+      - DATABASE_URL=postgresql://postgres:1234@db:5432/user_db
 
-
-    
   db:
     image: postgres:13
     restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 1234
-      POSTGRES_DB : user_db
+      POSTGRES_DB: user_db
     ports:
       - "5433:5432"
-    
     volumes:
       - pgdata:/var/lib/postgresql/data
 
