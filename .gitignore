@@ -22,3 +22,6 @@ rad.json
 TestResults.xml
 
 venv
+
+product_service_node/node_modules
+
