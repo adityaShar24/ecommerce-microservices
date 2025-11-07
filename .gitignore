@@ -25,3 +25,5 @@ venv
 
 product_service_node/node_modules
 
+order_service/venv
+
