@@ -12,6 +12,8 @@ sequelize.sync({ alter: true }).then(() => {
   console.log('Database synced!');
 });
 
+app.use('/api/categories', categoryRoutes);
+
 app.get('/', (req, res) => {
   res.json({ message: 'Product Service is running 🚀' });
 });
